@@ -13,7 +13,7 @@ static void Main(string[] args)
 
 	Console.WriteLine(translator.Format("here we go... %t", "hello world"));	//here we go... Hello World
 	Console.WriteLine(translator.Format("%T", "say", "exomia", "hello world"));	//exomia say: 'Hello World'
-	Console.WriteLine(translator.Format("%t", "say2", "exomia"));				//exomia say: 'this is an example'
+	Console.WriteLine(translator.Format("%t", "say2", "exomia"));			//exomia say: 'this is an example'
 
 	Console.ReadKey();
 }
