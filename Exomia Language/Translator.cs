@@ -33,8 +33,6 @@ namespace Exomia.Language
     /// <inheritdoc />
     public sealed class Translator : ITranslator
     {
-        #region Variables
-
         private const string PHRASE_FILE_EXTENSION = ".phrases";
         private const char ESCAPECHAR = '%';
 
@@ -46,25 +44,6 @@ namespace Exomia.Language
         private readonly Dictionary<string, Category> _categories;
         private readonly string _translationDirectory;
         private string _currentLangauge;
-
-        #endregion
-
-        #region Properties
-
-        /// <inheritdoc />
-        public string CurrentLanguage
-        {
-            get { return _currentLangauge; }
-            set
-            {
-                _currentLangauge = value;
-                _categories.Clear();
-            }
-        }
-
-        #endregion
-
-        #region Constructors
 
         static Translator()
         {
@@ -98,9 +77,16 @@ namespace Exomia.Language
             _currentLangauge = language ?? throw new ArgumentNullException(nameof(language));
         }
 
-        #endregion
-
-        #region Methods
+        /// <inheritdoc />
+        public string CurrentLanguage
+        {
+            get { return _currentLangauge; }
+            set
+            {
+                _currentLangauge = value;
+                _categories.Clear();
+            }
+        }
 
         /// <inheritdoc />
         public void Load(string fileName)
@@ -229,37 +215,37 @@ namespace Exomia.Language
                 {
                     case 't':
                     case 'T':
+                    {
+                        string translationKey = args[argc++].ToString();
+                        if (!_categories.TryGetValue(translationKey, out Category category))
                         {
-                            string translationKey = args[argc++].ToString();
-                            if (!_categories.TryGetValue(translationKey, out Category category))
-                            {
-                                throw new KeyNotFoundException(translationKey);
-                            }
-                            string phrase = category.Phrase;
-                            if (category.Format != null && category.Format.Length > 0)
-                            {
-                                phrase = Format(phrase, category.Format, args, ref argc);
-                            }
-                            result.Append(phrase);
+                            throw new KeyNotFoundException(translationKey);
                         }
+                        string phrase = category.Phrase;
+                        if (category.Format != null && category.Format.Length > 0)
+                        {
+                            phrase = Format(phrase, category.Format, args, ref argc);
+                        }
+                        result.Append(phrase);
+                    }
                         break;
                     case 's':
                     case 'S':
                     case 'n':
                     case 'N':
-                        {
-                            result.Append(args[argc++]);
-                        }
+                    {
+                        result.Append(args[argc++]);
+                    }
                         break;
                     case ESCAPECHAR:
-                        {
-                            result.Append(ESCAPECHAR);
-                        }
+                    {
+                        result.Append(ESCAPECHAR);
+                    }
                         break;
                     default:
-                        {
-                            throw new FormatException($"Invalid Format '{c}'");
-                        }
+                    {
+                        throw new FormatException($"Invalid Format '{c}'");
+                    }
                 }
             }
             if (format.Length - start > 0)
@@ -280,62 +266,60 @@ namespace Exomia.Language
                 switch (pFormat.Length)
                 {
                     case 1:
-                        {
-                            result = result.Replace(sel, args[argc++].ToString());
-                        }
+                    {
+                        result = result.Replace(sel, args[argc++].ToString());
+                    }
                         break;
                     case 2:
+                    {
+                        if (pFormat[1].Length == 1)
                         {
-                            if (pFormat[1].Length == 1)
+                            switch (pFormat[1][0])
                             {
-                                switch (pFormat[1][0])
+                                case 't':
+                                case 'T':
                                 {
-                                    case 't':
-                                    case 'T':
-                                        {
-                                            string translationKey = args[argc++].ToString();
-                                            if (!_categories.TryGetValue(translationKey, out Category category))
-                                            {
-                                                throw new KeyNotFoundException(translationKey);
-                                            }
-                                            string phrase1 = category.Phrase;
-                                            if (category.Format != null && category.Format.Length > 0)
-                                            {
-                                                phrase1 = Format(phrase, category.Format, args, ref argc);
-                                            }
-                                            result = result.Replace(sel, phrase1);
-                                            break;
-                                        }
-                                    default:
-                                        {
-                                            throw new FormatException($"Invalid Format '{pFormat[1][0]}'");
-                                        }
+                                    string translationKey = args[argc++].ToString();
+                                    if (!_categories.TryGetValue(translationKey, out Category category))
+                                    {
+                                        throw new KeyNotFoundException(translationKey);
+                                    }
+                                    string phrase1 = category.Phrase;
+                                    if (category.Format != null && category.Format.Length > 0)
+                                    {
+                                        phrase1 = Format(phrase, category.Format, args, ref argc);
+                                    }
+                                    result = result.Replace(sel, phrase1);
+                                    break;
                                 }
-                            }
-                            else
-                            {
-                                if (!_categories.TryGetValue(pFormat[1], out Category category))
+                                default:
                                 {
-                                    throw new KeyNotFoundException(pFormat[1]);
+                                    throw new FormatException($"Invalid Format '{pFormat[1][0]}'");
                                 }
-                                string phrase1 = category.Phrase;
-                                if (category.Format != null && category.Format.Length > 0)
-                                {
-                                    phrase1 = Format(phrase1, category.Format, args, ref argc);
-                                }
-                                result = result.Replace(sel, phrase1);
                             }
                         }
+                        else
+                        {
+                            if (!_categories.TryGetValue(pFormat[1], out Category category))
+                            {
+                                throw new KeyNotFoundException(pFormat[1]);
+                            }
+                            string phrase1 = category.Phrase;
+                            if (category.Format != null && category.Format.Length > 0)
+                            {
+                                phrase1 = Format(phrase1, category.Format, args, ref argc);
+                            }
+                            result = result.Replace(sel, phrase1);
+                        }
+                    }
                         break;
                     default:
-                        {
-                            throw new ArgumentOutOfRangeException(nameof(format), "invalid format: " + format[i]);
-                        }
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(format), "invalid format: " + format[i]);
+                    }
                 }
             }
             return result.ToString();
         }
-
-        #endregion
     }
 }

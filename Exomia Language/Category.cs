@@ -26,11 +26,7 @@ namespace Exomia.Language
 {
     internal class Category
     {
-        #region Properties
-
         public string[] Format { get; set; } = null;
         public string Phrase { get; set; } = string.Empty;
-
-        #endregion
     }
 }

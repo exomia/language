@@ -33,16 +33,10 @@ namespace Exomia.Language
     /// </summary>
     public interface ITranslator
     {
-        #region Properties
-
         /// <summary>
         ///     get or set the current language
         /// </summary>
         string CurrentLanguage { get; set; }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         ///     load a translation file
@@ -62,7 +56,5 @@ namespace Exomia.Language
         /// <exception cref="KeyNotFoundException"></exception>
         /// <exception cref="FormatException"></exception>
         string Format(string format, params object[] args);
-
-        #endregion
     }
 }
