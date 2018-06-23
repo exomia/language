@@ -2,6 +2,8 @@
 
 exomia/language support different languages in your application
 
+![](https://img.shields.io/github/issues-pr/exomia/language.svg) ![](https://img.shields.io/github/issues/exomia/language.svg)  ![](https://img.shields.io/github/last-commit/exomia/language.svg) ![](https://img.shields.io/github/contributors/exomia/language.svg) ![](https://img.shields.io/github/commit-activity/y/exomia/language.svg) ![](https://img.shields.io/github/languages/top/exomia/language.svg) ![](https://img.shields.io/github/languages/count/exomia/language.svg) ![](https://img.shields.io/github/license/exomia/language.svg)
+
 ## Example
 
 ```csharp
