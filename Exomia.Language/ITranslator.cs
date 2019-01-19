@@ -51,7 +51,7 @@ namespace Exomia.Language
         /// </summary>
         /// <param name="format">language string</param>
         /// <param name="args">arguments</param>
-        /// <returns>a formated language string</returns>
+        /// <returns>a formatted language string</returns>
         /// <exception cref="IndexOutOfRangeException"></exception>
         /// <exception cref="KeyNotFoundException"></exception>
         /// <exception cref="FormatException"></exception>

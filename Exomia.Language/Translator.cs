@@ -34,34 +34,35 @@ namespace Exomia.Language
     public sealed class Translator : ITranslator
     {
         private const string PHRASE_FILE_EXTENSION = ".phrases";
-        private const char ESCAPECHAR = '%';
+        private const char ESCAPE_CHAR = '%';
 
         private static readonly Regex s_regex_check_valid_phrase_file;
         private static readonly Regex s_regex_get_full_line;
         private static readonly Regex s_regex_get_category_name;
         private static readonly Regex s_regex_get_phrase_information;
         private static readonly Regex s_regex_get_phrase_format;
+        
         private readonly Dictionary<string, Category> _categories;
         private readonly string _translationDirectory;
-        private string _currentLangauge;
+        private string _currentLanguage;
 
         static Translator()
         {
             s_regex_check_valid_phrase_file = new Regex(
                 "^\"[Pp]hrases\"\\s*{(.*)}$",
-                RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
+                RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline | RegexOptions.Compiled);
             s_regex_get_full_line = new Regex(
                 "^\\s*(.+)$",
-                RegexOptions.IgnorePatternWhitespace | RegexOptions.Multiline);
+                RegexOptions.IgnorePatternWhitespace | RegexOptions.Multiline | RegexOptions.Compiled);
             s_regex_get_category_name = new Regex(
                 "\"(.+)\"",
-                RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
+                RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline | RegexOptions.Compiled);
             s_regex_get_phrase_information = new Regex(
                 "\"([a-z#]+)\"\\s+\"(.*)\"",
-                RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
+                RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline | RegexOptions.Compiled);
             s_regex_get_phrase_format = new Regex(
                 "{(([0-9]{0,2})(:[a-zA-Z0-9 ]+)?)}",
-                RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
+                RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline | RegexOptions.Compiled);
         }
 
         /// <summary>
@@ -74,16 +75,16 @@ namespace Exomia.Language
         {
             _categories = new Dictionary<string, Category>(16);
             _translationDirectory = translationDirectory;
-            _currentLangauge = language ?? throw new ArgumentNullException(nameof(language));
+            _currentLanguage = language ?? throw new ArgumentNullException(nameof(language));
         }
 
         /// <inheritdoc />
         public string CurrentLanguage
         {
-            get { return _currentLangauge; }
+            get { return _currentLanguage; }
             set
             {
-                _currentLangauge = value;
+                _currentLanguage = value;
                 _categories.Clear();
             }
         }
@@ -161,7 +162,7 @@ namespace Exomia.Language
                                 throw new FormatException("Invalid phrase file format");
                             }
 
-                            if (phraseInfoMatch.Groups[1].Value.Equals(_currentLangauge))
+                            if (phraseInfoMatch.Groups[1].Value.Equals(_currentLanguage))
                             {
                                 category.Phrase = phraseInfoMatch.Groups[2].Value;
                                 MatchCollection collection =
@@ -201,7 +202,7 @@ namespace Exomia.Language
             int argc = 0;
             int index = 0;
             int start = 0;
-            while ((index = format.IndexOf(ESCAPECHAR, index)) != -1)
+            while ((index = format.IndexOf(ESCAPE_CHAR, index)) != -1)
             {
                 if (argc >= args.Length) { throw new IndexOutOfRangeException("arg out of range"); }
                 if (index - start > 0)
@@ -237,9 +238,9 @@ namespace Exomia.Language
                         result.Append(args[argc++]);
                     }
                         break;
-                    case ESCAPECHAR:
+                    case ESCAPE_CHAR:
                     {
-                        result.Append(ESCAPECHAR);
+                        result.Append(ESCAPE_CHAR);
                     }
                         break;
                     default:
