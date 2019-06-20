@@ -1,24 +1,10 @@
-﻿#region MIT License
+﻿#region License
 
-// Copyright (c) 2018 exomia - Daniel Bätz
+// Copyright (c) 2018-2019, exomia
+// All rights reserved.
 // 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
 
 #endregion
 
@@ -30,22 +16,75 @@ using System.Text.RegularExpressions;
 
 namespace Exomia.Language
 {
-    /// <inheritdoc />
+    /// <summary>
+    ///     A translator. This class cannot be inherited.
+    /// </summary>
     public sealed class Translator : ITranslator
     {
+        /// <summary>
+        ///     The phrase file extension.
+        /// </summary>
         private const string PHRASE_FILE_EXTENSION = ".phrases";
+
+        /// <summary>
+        ///     The escape character.
+        /// </summary>
         private const char ESCAPE_CHAR = '%';
 
+        /// <summary>
+        ///     The regular expression check valid phrase file.
+        /// </summary>
         private static readonly Regex s_regex_check_valid_phrase_file;
+
+        /// <summary>
+        ///     The regular expression get full line.
+        /// </summary>
         private static readonly Regex s_regex_get_full_line;
+
+        /// <summary>
+        ///     Name of the regular expression get category.
+        /// </summary>
         private static readonly Regex s_regex_get_category_name;
+
+        /// <summary>
+        ///     Information describing the regular expression get phrase.
+        /// </summary>
         private static readonly Regex s_regex_get_phrase_information;
+
+        /// <summary>
+        ///     The regular expression get phrase format.
+        /// </summary>
         private static readonly Regex s_regex_get_phrase_format;
-        
+
+        /// <summary>
+        ///     The categories.
+        /// </summary>
         private readonly Dictionary<string, Category> _categories;
+
+        /// <summary>
+        ///     Pathname of the translation directory.
+        /// </summary>
         private readonly string _translationDirectory;
+
+        /// <summary>
+        ///     The current language.
+        /// </summary>
         private string _currentLanguage;
 
+        /// <inheritdoc />
+        public string CurrentLanguage
+        {
+            get { return _currentLanguage; }
+            set
+            {
+                _currentLanguage = value;
+                _categories.Clear();
+            }
+        }
+
+        /// <summary>
+        ///     Initializes static members of the <see cref="Translator" /> class.
+        /// </summary>
         static Translator()
         {
             s_regex_check_valid_phrase_file = new Regex(
@@ -66,27 +105,16 @@ namespace Exomia.Language
         }
 
         /// <summary>
-        ///     constructor
+        ///     constructor.
         /// </summary>
-        /// <param name="translationDirectory">translationDirectory</param>
-        /// <param name="language">language</param>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <param name="translationDirectory"> translationDirectory. </param>
+        /// <param name="language">             (Optional) language. </param>
+        /// <exception cref="ArgumentNullException"> Thrown when one or more required arguments are null. </exception>
         public Translator(string translationDirectory, string language = "en")
         {
-            _categories = new Dictionary<string, Category>(16);
+            _categories           = new Dictionary<string, Category>(16);
             _translationDirectory = translationDirectory;
-            _currentLanguage = language ?? throw new ArgumentNullException(nameof(language));
-        }
-
-        /// <inheritdoc />
-        public string CurrentLanguage
-        {
-            get { return _currentLanguage; }
-            set
-            {
-                _currentLanguage = value;
-                _categories.Clear();
-            }
+            _currentLanguage      = language ?? throw new ArgumentNullException(nameof(language));
         }
 
         /// <inheritdoc />
@@ -199,9 +227,9 @@ namespace Exomia.Language
         public string Format(string format, params object[] args)
         {
             StringBuilder result = new StringBuilder(255);
-            int argc = 0;
-            int index = 0;
-            int start = 0;
+            int           argc   = 0;
+            int           index  = 0;
+            int           start  = 0;
             while ((index = format.IndexOf(ESCAPE_CHAR, index)) != -1)
             {
                 if (argc >= args.Length) { throw new IndexOutOfRangeException("arg out of range"); }
@@ -216,37 +244,37 @@ namespace Exomia.Language
                 {
                     case 't':
                     case 'T':
-                    {
-                        string translationKey = args[argc++].ToString();
-                        if (!_categories.TryGetValue(translationKey, out Category category))
                         {
-                            throw new KeyNotFoundException(translationKey);
+                            string translationKey = args[argc++].ToString();
+                            if (!_categories.TryGetValue(translationKey, out Category category))
+                            {
+                                throw new KeyNotFoundException(translationKey);
+                            }
+                            string phrase = category.Phrase;
+                            if (category.Format != null && category.Format.Length > 0)
+                            {
+                                phrase = Format(phrase, category.Format, args, ref argc);
+                            }
+                            result.Append(phrase);
                         }
-                        string phrase = category.Phrase;
-                        if (category.Format != null && category.Format.Length > 0)
-                        {
-                            phrase = Format(phrase, category.Format, args, ref argc);
-                        }
-                        result.Append(phrase);
-                    }
                         break;
                     case 's':
                     case 'S':
                     case 'n':
                     case 'N':
-                    {
-                        result.Append(args[argc++]);
-                    }
+                        {
+                            result.Append(args[argc++]);
+                        }
                         break;
                     case ESCAPE_CHAR:
-                    {
-                        result.Append(ESCAPE_CHAR);
-                    }
+                        {
+                            result.Append(ESCAPE_CHAR);
+                        }
                         break;
                     default:
-                    {
-                        throw new FormatException($"Invalid Format '{c}'");
-                    }
+                        {
+                            throw new FormatException($"Invalid Format '{c}'");
+                        }
                 }
             }
             if (format.Length - start > 0)
@@ -256,68 +284,87 @@ namespace Exomia.Language
             return result.ToString();
         }
 
+        /// <summary>
+        ///     Formats.
+        /// </summary>
+        /// <param name="phrase"> The phrase. </param>
+        /// <param name="format"> Describes the format to use. </param>
+        /// <param name="args">   The arguments. </param>
+        /// <param name="argc">   [in,out] The argc. </param>
+        /// <returns>
+        ///     The formatted value.
+        /// </returns>
+        /// <exception cref="KeyNotFoundException">
+        ///     Thrown when a Key Not Found error condition
+        ///     occurs.
+        /// </exception>
+        /// <exception cref="FormatException">             Thrown when the format of the ? is incorrect. </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when one or more arguments are outside
+        ///     the required range.
+        /// </exception>
         private string Format(string phrase, string[] format, object[] args, ref int argc)
         {
             StringBuilder result = new StringBuilder(phrase, 255);
             for (int i = 0; i < format.Length; i++)
             {
                 string[] pFormat = format[i].Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
-                string sel = "{" + format[i] + "}";
+                string   sel     = "{" + format[i] + "}";
 
                 switch (pFormat.Length)
                 {
                     case 1:
-                    {
-                        result = result.Replace(sel, args[argc++].ToString());
-                    }
+                        {
+                            result = result.Replace(sel, args[argc++].ToString());
+                        }
                         break;
                     case 2:
-                    {
-                        if (pFormat[1].Length == 1)
                         {
-                            switch (pFormat[1][0])
+                            if (pFormat[1].Length == 1)
                             {
-                                case 't':
-                                case 'T':
+                                switch (pFormat[1][0])
                                 {
-                                    string translationKey = args[argc++].ToString();
-                                    if (!_categories.TryGetValue(translationKey, out Category category))
-                                    {
-                                        throw new KeyNotFoundException(translationKey);
-                                    }
-                                    string phrase1 = category.Phrase;
-                                    if (category.Format != null && category.Format.Length > 0)
-                                    {
-                                        phrase1 = Format(phrase, category.Format, args, ref argc);
-                                    }
-                                    result = result.Replace(sel, phrase1);
-                                    break;
+                                    case 't':
+                                    case 'T':
+                                        {
+                                            string translationKey = args[argc++].ToString();
+                                            if (!_categories.TryGetValue(translationKey, out Category category))
+                                            {
+                                                throw new KeyNotFoundException(translationKey);
+                                            }
+                                            string phrase1 = category.Phrase;
+                                            if (category.Format != null && category.Format.Length > 0)
+                                            {
+                                                phrase1 = Format(phrase, category.Format, args, ref argc);
+                                            }
+                                            result = result.Replace(sel, phrase1);
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            throw new FormatException($"Invalid Format '{pFormat[1][0]}'");
+                                        }
                                 }
-                                default:
+                            }
+                            else
+                            {
+                                if (!_categories.TryGetValue(pFormat[1], out Category category))
                                 {
-                                    throw new FormatException($"Invalid Format '{pFormat[1][0]}'");
+                                    throw new KeyNotFoundException(pFormat[1]);
                                 }
+                                string phrase1 = category.Phrase;
+                                if (category.Format != null && category.Format.Length > 0)
+                                {
+                                    phrase1 = Format(phrase1, category.Format, args, ref argc);
+                                }
+                                result = result.Replace(sel, phrase1);
                             }
                         }
-                        else
-                        {
-                            if (!_categories.TryGetValue(pFormat[1], out Category category))
-                            {
-                                throw new KeyNotFoundException(pFormat[1]);
-                            }
-                            string phrase1 = category.Phrase;
-                            if (category.Format != null && category.Format.Length > 0)
-                            {
-                                phrase1 = Format(phrase1, category.Format, args, ref argc);
-                            }
-                            result = result.Replace(sel, phrase1);
-                        }
-                    }
                         break;
                     default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(format), "invalid format: " + format[i]);
-                    }
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(format), "invalid format: " + format[i]);
+                        }
                 }
             }
             return result.ToString();
